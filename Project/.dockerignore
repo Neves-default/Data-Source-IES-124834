@@ -2,4 +2,8 @@ venv/
 .git/
 __pycache__/
 .vscode/
+<<<<<<< HEAD
 *.pyc
+=======
+*.pyc
+>>>>>>> 91c095041fbbdb26b3bf8b354093519dd4de1225
