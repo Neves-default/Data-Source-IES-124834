@@ -106,7 +106,7 @@ RABBITMQ_HEARTBEAT=600
 
 TIME_NOISE_LEVEL=10#0.1#10
 TIME_AIR_QUALITY=60*60#0.5#60*60
-TIME_TRAFFIC_DENSITY=20*60#0.5#20*60
+TIME_TRAFFIC_DENSITY=20*60*0.5#20*60
 
 NUM_APIs=3
 REQUESTS={
@@ -238,35 +238,40 @@ def task_traffic_priority(zones,ch_info):
     """Updates the traffic each 20 minutes"""
     while True:
         print(f"\n[{datetime.now().strftime('%H:%M:%S')}] --- UPDATE: Traffic (20 min) ---")
+        start_time = time.time()
         for zo in zones:
             data=formTrafficJamAPI(zo)
             message = json.dumps(data, ensure_ascii=False)
             publish_message(ch_info,message,"TrafficThread")
-        time.sleep(TIME_TRAFFIC_DENSITY)
+        duration = time.time() - start_time
+        time.sleep(max(0, TIME_TRAFFIC_DENSITY - duration))
         REQUESTS["TrafficJam"].resetCache()
 
 def task_air_quality(zones,ch_info):
     """Updates the air quality each 1 hour"""
     while True:
         print(f"\n[{datetime.now().strftime('%H:%M:%S')}] --- UPDATE: Air (1 hora) ---")
+        start_time = time.time()
         for zo in zones:
             data=formAirQualityAPI(zo)
             message = json.dumps(data, ensure_ascii=False)
             publish_message(ch_info,message, "AirThread")
-        time.sleep(TIME_AIR_QUALITY)
+        duration = time.time() - start_time
+        time.sleep(max(0, TIME_AIR_QUALITY-duration))
         REQUESTS["AirQuality"].resetCache()
 
 def task_noise_trigger(zones,ch_info):
     """Just manages the 10 seconds cycle and triggers the process"""
     while True:
         print(f"\n[{datetime.now().strftime('%H:%M:%S')}] --- UPDATE: Noise (10 segundos) ---")
+        start_time = time.time()
         for zo in zones:
             data=formNoiseLevelAPI(zo)
             if data.get("data"):
                 message = json.dumps(data, ensure_ascii=False)
                 publish_message(ch_info, message, "NoiseThread")
-                
-        time.sleep(TIME_NOISE_LEVEL)
+        duration = time.time() - start_time      
+        time.sleep(max(0,TIME_NOISE_LEVEL-duration))
 #============================================================================================
 
 """MAIN CODE"""
